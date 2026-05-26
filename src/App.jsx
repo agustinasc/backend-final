@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import Pedidos from './pages/Pedidos'
 import NuevoPedido from './pages/NuevoPedido'
 import OrdenProduccion from './pages/OrdenProduccion'
+import EditarPedido from './pages/EditarPedido'
 
 function ProtectedRoute({ children }) {
   const [session, setSession] = useState(undefined)
@@ -34,6 +35,7 @@ function App() {
         <Route path="/pedidos" element={<ProtectedRoute><Pedidos /></ProtectedRoute>} />
         <Route path="/nuevo-pedido" element={<ProtectedRoute><NuevoPedido /></ProtectedRoute>} />
         <Route path="/orden-produccion" element={<ProtectedRoute><OrdenProduccion /></ProtectedRoute>} />
+        <Route path="/editar-pedido/:id" element={<ProtectedRoute><EditarPedido /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   )

@@ -53,6 +53,20 @@ export default function Pedidos() {
 
   const grupos = agruparPorFecha()
 
+  ///------------Para eliminar pedidos
+
+  const handleEliminar = async (pedidoId) => {
+    const confirmar = window.confirm('¿Seguro que querés eliminar este pedido?')
+    if (!confirmar) return
+
+    const { error } = await supabase
+      .from('pedidos')
+      .delete()
+      .eq('id', pedidoId)
+
+    if (!error) fetchPedidos()
+  }
+
   return (
     <div className="min-h-screen bg-amber-50">
       {/* Header */}
@@ -128,6 +142,20 @@ export default function Pedidos() {
                         {pedido.observaciones && (
                           <p className="text-sm text-gray-400 mt-0.5">📝 {pedido.observaciones}</p>
                         )}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => navigate(`/editar-pedido/${pedido.id}`)}
+                          className="text-sm text-amber-600 hover:underline"
+                        >
+                          ✏️ Editar
+                        </button>
+                        <button
+                          onClick={() => handleEliminar(pedido.id)}
+                          className="text-sm text-red-400 hover:underline"
+                        >
+                          🗑️ Eliminar
+                        </button>
                       </div>
                     </div>
                     <div className="mt-2 flex flex-wrap gap-2">
