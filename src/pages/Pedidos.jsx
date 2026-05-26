@@ -69,7 +69,9 @@ export default function Pedidos() {
 
   return (
     <div className="min-h-screen bg-amber-50">
+
       {/* Header */}
+
       <div className="bg-amber-700 text-white px-6 py-4 flex justify-between items-center">
         <h1 className="text-xl font-bold">🥖 Sistema de Pedidos</h1>
         <div className="flex gap-3">
@@ -78,6 +80,12 @@ export default function Pedidos() {
             className="bg-white text-amber-700 font-semibold px-4 py-1.5 rounded-lg text-sm hover:bg-amber-100 transition"
           >
             + Nuevo Pedido
+          </button>
+          <button
+            onClick={() => navigate('/configuracion')}
+            className="bg-amber-800 hover:bg-amber-900 text-white font-semibold px-4 py-1.5 rounded-lg text-sm transition"
+          >
+            ⚙️
           </button>
           <button
             onClick={handleLogout}

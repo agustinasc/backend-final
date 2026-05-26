@@ -6,6 +6,9 @@ import Pedidos from './pages/Pedidos'
 import NuevoPedido from './pages/NuevoPedido'
 import OrdenProduccion from './pages/OrdenProduccion'
 import EditarPedido from './pages/EditarPedido'
+import Configuracion from './pages/Configuracion'
+import Clientes from './pages/Clientes'
+import Productos from './pages/Productos'
 
 function ProtectedRoute({ children }) {
   const [session, setSession] = useState(undefined)
@@ -36,6 +39,9 @@ function App() {
         <Route path="/nuevo-pedido" element={<ProtectedRoute><NuevoPedido /></ProtectedRoute>} />
         <Route path="/orden-produccion" element={<ProtectedRoute><OrdenProduccion /></ProtectedRoute>} />
         <Route path="/editar-pedido/:id" element={<ProtectedRoute><EditarPedido /></ProtectedRoute>} />
+        <Route path="/configuracion" element={<ProtectedRoute><Configuracion /></ProtectedRoute>} />
+        <Route path="/clientes" element={<ProtectedRoute><Clientes /></ProtectedRoute>} />
+        <Route path="/productos" element={<ProtectedRoute><Productos /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   )

@@ -142,7 +142,7 @@ export default function NuevoPedido() {
                   >
                     <option value="">Seleccioná producto...</option>
                     {productos.map(p => (
-                      <option key={p.id} value={p.id}>{p.nombre} ({p.unidad})</option>
+                      <option key={p.id} value={p.id}>{p.nombre} — {p.unidad}</option>
                     ))}
                   </select>
                   <input
