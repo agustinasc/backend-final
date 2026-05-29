@@ -8,10 +8,12 @@ export default function Usuarios() {
   const [usuarios, setUsuarios] = useState([])
   const [loading, setLoading] = useState(true)
   const [nombre, setNombre] = useState('')
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
+  const [cambiandoPassword, setCambiandoPassword] = useState(null)
+  const [nuevaPassword, setNuevaPassword] = useState('')
   const navigate = useNavigate()
 
   const getToken = async () => {
@@ -39,7 +41,7 @@ export default function Usuarios() {
   const handleGuardar = async () => {
     setError('')
     if (!nombre.trim()) return setError('El nombre es obligatorio')
-    if (!email.trim()) return setError('El email es obligatorio')
+    if (!username.trim()) return setError('El usuario es obligatorio')
     if (!password.trim()) return setError('La contraseña es obligatoria')
     if (password.length < 6) return setError('La contraseña debe tener al menos 6 caracteres')
 
@@ -48,7 +50,7 @@ export default function Usuarios() {
     const res = await fetch(FUNCTION_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ accion: 'crear', nombre, email, password })
+      body: JSON.stringify({ accion: 'crear', nombre, username, password })
     })
     const data = await res.json()
 
@@ -56,11 +58,31 @@ export default function Usuarios() {
       setError(data.error)
     } else {
       setNombre('')
-      setEmail('')
+      setUsername('')
       setPassword('')
       fetchUsuarios()
     }
     setGuardando(false)
+  }
+
+  const handleCambiarPassword = async (userId) => {
+    if (!nuevaPassword.trim()) return
+    if (nuevaPassword.length < 6) return setError('La contraseña debe tener al menos 6 caracteres')
+
+    const token = await getToken()
+    const res = await fetch(FUNCTION_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ accion: 'cambiar-password', userId, nuevaPassword })
+    })
+    const data = await res.json()
+
+    if (!data.error) {
+      setCambiandoPassword(null)
+      setNuevaPassword('')
+    } else {
+      setError(data.error)
+    }
   }
 
   const handleEliminar = async (userId, nombreUsuario) => {
@@ -91,12 +113,12 @@ export default function Usuarios() {
 
       <div className="max-w-2xl mx-auto px-4 py-6 flex flex-col gap-6">
 
-        {/* Formulario */}
+        {/* Formulario nuevo usuario */}
         <div className="bg-white rounded-2xl shadow-sm p-6 flex flex-col gap-4">
           <h2 className="font-bold text-gray-700">+ Nuevo Vendedor</h2>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">Nombre</label>
+            <label className="text-sm font-medium text-gray-700">Nombre completo</label>
             <input
               type="text"
               value={nombre}
@@ -107,13 +129,13 @@ export default function Usuarios() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">Email</label>
+            <label className="text-sm font-medium text-gray-700">Nombre de usuario</label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/ /g, ''))}
               className="w-full border rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-amber-400"
-              placeholder="email@panaderia.com"
+              placeholder="sin espacios, ej: juan"
             />
           </div>
 
@@ -139,7 +161,7 @@ export default function Usuarios() {
           </button>
         </div>
 
-        {/* Lista */}
+        {/* Lista de usuarios */}
         <div className="flex flex-col gap-2">
           <h2 className="font-bold text-gray-700">Usuarios activos</h2>
           {loading ? (
@@ -148,18 +170,52 @@ export default function Usuarios() {
             <p className="text-center text-gray-500">No hay usuarios.</p>
           ) : (
             usuarios.map(u => (
-              <div key={u.id} className="bg-white rounded-xl shadow-sm p-4 border border-amber-100 flex justify-between items-center">
-                <div>
-                  <p className="font-semibold text-gray-800">{u.nombre}</p>
-                  <p className="text-sm text-gray-400">{u.rol}</p>
+              <div key={u.id} className="bg-white rounded-xl shadow-sm p-4 border border-amber-100">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="font-semibold text-gray-800">{u.nombre}</p>
+                    <p className="text-sm text-gray-400">@{u.username} · {u.rol}</p>
+                  </div>
+                  {u.rol !== 'admin' && (
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => { setCambiandoPassword(u.id); setNuevaPassword(''); setError('') }}
+                        className="text-sm text-amber-600 hover:underline"
+                      >
+                        🔑 Contraseña
+                      </button>
+                      <button
+                        onClick={() => handleEliminar(u.id, u.nombre)}
+                        className="text-sm text-red-400 hover:underline"
+                      >
+                        🗑️ Eliminar
+                      </button>
+                    </div>
+                  )}
                 </div>
-                {u.rol !== 'admin' && (
-                  <button
-                    onClick={() => handleEliminar(u.id, u.nombre)}
-                    className="text-sm text-red-400 hover:underline"
-                  >
-                    🗑️ Eliminar
-                  </button>
+
+                {cambiandoPassword === u.id && (
+                  <div className="mt-3 flex gap-2">
+                    <input
+                      type="password"
+                      value={nuevaPassword}
+                      onChange={(e) => setNuevaPassword(e.target.value)}
+                      placeholder="Nueva contraseña"
+                      className="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    />
+                    <button
+                      onClick={() => handleCambiarPassword(u.id)}
+                      className="bg-amber-600 hover:bg-amber-700 text-white text-sm px-4 py-2 rounded-lg transition"
+                    >
+                      Guardar
+                    </button>
+                    <button
+                      onClick={() => { setCambiandoPassword(null); setNuevaPassword('') }}
+                      className="text-sm text-gray-400 hover:underline px-2"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
                 )}
               </div>
             ))

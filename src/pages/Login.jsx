@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 
+const FUNCTION_URL = 'https://qscmkejcdsgvbjbljmgx.supabase.co/functions/v1/gestionar-usuarios'
+
 export default function Login() {
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -14,12 +16,33 @@ export default function Login() {
     setError('')
     setLoading(true)
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    try {
+      const res = await fetch(FUNCTION_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accion: 'login', username })
+      })
 
-    if (error) {
-      setError('Usuario o contraseña incorrectos')
-    } else {
-      navigate('/pedidos')
+      const data = await res.json()
+
+      if (data.error || !data.email) {
+        setError('Usuario o contraseña incorrectos')
+        setLoading(false)
+        return
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password
+      })
+
+      if (error) {
+        setError('Usuario o contraseña incorrectos')
+      } else {
+        navigate('/pedidos')
+      }
+    } catch {
+      setError('Error al conectar con el servidor')
     }
 
     setLoading(false)
@@ -33,13 +56,13 @@ export default function Login() {
 
         <form onSubmit={handleLogin} className="flex flex-col gap-4">
           <div>
-            <label className="text-sm text-gray-600">Email</label>
+            <label className="text-sm text-gray-600">Usuario</label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full border rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-amber-400"
-              placeholder="panaderia@panaderia.com"
+              placeholder="usuario"
             />
           </div>
           <div>
