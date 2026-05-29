@@ -170,14 +170,26 @@ export default function EditarPedido() {
                       <option key={p.id} value={p.id}>{p.nombre} ({p.unidad})</option>
                     ))}
                   </select>
-                  <input
-                    type="number"
-                    value={linea.cantidad}
-                    onChange={(e) => actualizarLinea(index, 'cantidad', e.target.value)}
-                    placeholder="Cantidad"
-                    className="w-28 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                    min="1"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      value={linea.cantidad}
+                      onChange={(e) => actualizarLinea(index, 'cantidad', e.target.value)}
+                      placeholder="Cantidad"
+                      className="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                      min="1"
+                    />
+                    <select
+                      value={linea.unidad || ''}
+                      onChange={(e) => actualizarLinea(index, 'unidad', e.target.value)}
+                      className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    >
+                      <option value="">Unidad</option>
+                      <option value="Kg">Kg</option>
+                      <option value="Unidad">Unidad</option>
+                      <option value="Lata">Lata</option>
+                    </select>
+                  </div>
                   {detalle.length > 1 && (
                     <button
                       onClick={() => eliminarLinea(index)}

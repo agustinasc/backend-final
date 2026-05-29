@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useContext } from 'react'
+import { UserContext } from '../App'
 import { supabase } from '../supabase'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -8,6 +10,9 @@ export default function Pedidos() {
   const [pedidos, setPedidos] = useState([])
   const [loading, setLoading] = useState(true)
   const [fechaSeleccionada, setFechaSeleccionada] = useState('')
+
+  const perfil = useContext(UserContext)
+
   const navigate = useNavigate()
 
   const fetchPedidos = async () => {
@@ -81,12 +86,14 @@ export default function Pedidos() {
           >
             + Nuevo Pedido
           </button>
-          <button
-            onClick={() => navigate('/configuracion')}
-            className="bg-amber-800 hover:bg-amber-900 text-white font-semibold px-4 py-1.5 rounded-lg text-sm transition"
-          >
-            ⚙️
-          </button>
+            {perfil?.rol === 'admin' && (
+              <button
+                onClick={() => navigate('/configuracion')}
+                className="bg-amber-800 hover:bg-amber-900 text-white font-semibold px-4 py-1.5 rounded-lg text-sm transition"
+              >
+                ⚙️
+              </button>
+            )}
           <button
             onClick={handleLogout}
             className="text-amber-200 hover:text-white text-sm"

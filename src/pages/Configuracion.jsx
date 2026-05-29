@@ -31,6 +31,17 @@ export default function Configuracion() {
           <h2 className="text-lg font-bold text-amber-800">🍞 Productos</h2>
           <p className="text-gray-500 text-sm mt-1">Agregar, editar y eliminar productos</p>
         </button>
+
+
+        {/* -------- boton de usuarios ------- */}
+
+        <button
+          onClick={() => navigate('/usuarios')}
+          className="bg-white rounded-2xl shadow-sm p-6 text-left hover:shadow-md transition border border-amber-100"
+        >
+          <h2 className="text-lg font-bold text-amber-800">👤 Usuarios</h2>
+          <p className="text-gray-500 text-sm mt-1">Agregar y eliminar vendedores</p>
+        </button>
       </div>
     </div>
   )

@@ -46,9 +46,17 @@ export default function NuevoPedido() {
 
     setLoading(true)
 
+    const { data: { user } } = await supabase.auth.getUser()
+
+    const { data: perfil } = await supabase
+      .from('perfiles')
+      .select('nombre')
+      .eq('id', user.id)
+      .single()
+
     const { data: pedido, error: errorPedido } = await supabase
       .from('pedidos')
-      .insert({ cliente_id: clienteId, fecha_entrega: fechaEntrega, observaciones })
+      .insert({ cliente_id: clienteId, fecha_entrega: fechaEntrega, observaciones, cargado_por: perfil?.nombre || user?.email })
       .select()
       .single()
 
