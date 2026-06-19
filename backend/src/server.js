@@ -6,6 +6,8 @@ import express from 'express'
 import helmet from 'helmet'
 import cors from 'cors'
 import { connectDB } from './config/db.js'
+import authRoutes from './routes/authRoutes.js'
+import clienteRoutes from './routes/clienteRoutes.js'
 
 const app = express()
 
@@ -16,6 +18,9 @@ app.use(express.json())
 app.get('/', (req, res) => {
   res.json({ ok: true, mensaje: 'API Panadería funcionando 🥖' })
 })
+
+app.use('/api/auth', authRoutes)
+app.use('/api/clientes', clienteRoutes)
 
 const PORT = process.env.PORT || 4000
 
