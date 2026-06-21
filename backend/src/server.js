@@ -9,6 +9,8 @@ import { connectDB } from './config/db.js'
 import authRoutes from './routes/authRoutes.js'
 import clienteRoutes from './routes/clienteRoutes.js'
 import productoRoutes from './routes/productoRoutes.js'
+import pedidoRoutes from './routes/pedidoRoutes.js'
+import usuarioRoutes from './routes/usuarioRoutes.js'
 
 const app = express()
 
@@ -23,6 +25,8 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes)
 app.use('/api/clientes', clienteRoutes)
 app.use('/api/productos', productoRoutes)
+app.use('/api/pedidos', pedidoRoutes)
+app.use('/api/usuarios', usuarioRoutes)
 
 const PORT = process.env.PORT || 4000
 
