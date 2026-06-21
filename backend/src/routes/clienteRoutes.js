@@ -7,6 +7,8 @@ import {
   eliminarCliente
 } from '../controllers/clienteController.js'
 import { proteger, soloAdmin } from '../middlewares/auth.js'
+import { reglasCliente } from '../validations/clienteValidation.js'
+import { validar } from '../middlewares/validar.js'
 
 const router = express.Router()
 
@@ -14,8 +16,8 @@ const router = express.Router()
 // Borrar requiere además ser admin (soloAdmin).
 router.get('/', proteger, obtenerClientes)
 router.get('/:id', proteger, obtenerCliente)
-router.post('/', proteger, crearCliente)
-router.put('/:id', proteger, actualizarCliente)
+router.post('/', proteger, reglasCliente, validar, crearCliente)
+router.put('/:id', proteger, reglasCliente, validar, actualizarCliente)
 router.delete('/:id', proteger, soloAdmin, eliminarCliente)
 
 export default router
