@@ -28,8 +28,8 @@ export const obtenerProducto = async (req, res) => {
 // POST /api/productos  → crear
 export const crearProducto = async (req, res) => {
   try {
-    const { nombre, unidadesDisponibles } = req.body
-    const producto = await Producto.create({ nombre, unidadesDisponibles })
+    const { nombre, unidad, unidadesDisponibles } = req.body
+    const producto = await Producto.create({ nombre, unidad, unidadesDisponibles })
     res.status(201).json(producto)
   } catch (error) {
     console.log(error) 
@@ -40,10 +40,10 @@ export const crearProducto = async (req, res) => {
 // PUT /api/productos/:id  → editar
 export const actualizarProducto = async (req, res) => {
   try {
-    const { nombre, unidadesDisponibles } = req.body
+    const { nombre, unidad, unidadesDisponibles } = req.body
     const producto = await Producto.findByIdAndUpdate(
       req.params.id,
-      { nombre, unidadesDisponibles },
+      { nombre, unidad, unidadesDisponibles },
       { new: true, runValidators: true }
     )
     if (!producto) {

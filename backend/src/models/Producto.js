@@ -7,18 +7,15 @@ const productoSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
-    unidadesDisponibles: [
+    unidad: {
+      type: String,
+      enum: ['kg', 'unidad'],
+      default: 'kg'
+    },
+    unidadesDisponibles: [          // lo dejamos por si lo usás a futuro
       {
-        unidad: {
-          type: String,
-          required: true,
-          trim: true
-        },
-        precio: {
-          type: Number,
-          min: 0,
-          default: 0
-        }
+        unidad: { type: String, trim: true },
+        precio: { type: Number, min: 0, default: 0 }
       }
     ]
   },

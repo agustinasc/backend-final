@@ -1,20 +1,24 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../supabase'
+import api from '../api'
 
 export default function Productos() {
   const [productos, setProductos] = useState([])
   const [loading, setLoading] = useState(true)
   const [nombre, setNombre] = useState('')
-  const [unidad, setUnidad] = useState('Kg')
+  const [unidad, setUnidad] = useState('kg')
   const [editandoId, setEditandoId] = useState(null)
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
   const fetchProductos = async () => {
     setLoading(true)
-    const { data } = await supabase.from('productos').select('*').order('nombre')
-    setProductos(data || [])
+    try {
+      const { data } = await api.get('/productos')
+      setProductos(data || [])
+    } catch {
+      setProductos([])
+    }
     setLoading(false)
   }
 
@@ -26,48 +30,45 @@ export default function Productos() {
     setError('')
     if (!nombre.trim()) return setError('El nombre es obligatorio')
 
-    if (editandoId) {
-      const { error } = await supabase
-        .from('productos')
-        .update({ nombre: nombre.trim(), unidad })
-        .eq('id', editandoId)
-      if (error) return setError('Error al actualizar el producto')
-    } else {
-      const { error } = await supabase
-        .from('productos')
-        .insert({ nombre: nombre.trim(), unidad })
-      if (error) return setError('Error al agregar el producto')
+    try {
+      if (editandoId) {
+        await api.put(`/productos/${editandoId}`, { nombre: nombre.trim(), unidad })
+      } else {
+        await api.post('/productos', { nombre: nombre.trim(), unidad })
+      }
+    } catch {
+      return setError(editandoId ? 'Error al actualizar el producto' : 'Error al agregar el producto')
     }
 
     setNombre('')
-    setUnidad('Kg')
+    setUnidad('kg')
     setEditandoId(null)
     fetchProductos()
   }
 
   const handleEditar = (producto) => {
-    setEditandoId(producto.id)
+    setEditandoId(producto._id)
     setNombre(producto.nombre)
-    setUnidad(producto.unidad)
+    setUnidad(producto.unidad || 'kg')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const handleCancelar = () => {
     setEditandoId(null)
     setNombre('')
-    setUnidad('Kg')
+    setUnidad('kg')
     setError('')
   }
 
   const handleEliminar = async (id) => {
     const confirmar = window.confirm('¿Seguro que querés eliminar este producto?')
     if (!confirmar) return
-    const { error } = await supabase.from('productos').delete().eq('id', id)
-    if (error) {
-      alert('No se puede eliminar un producto que tiene pedidos asociados')
-      return
+    try {
+      await api.delete(`/productos/${id}`)
+      fetchProductos()
+    } catch {
+      alert('No se pudo eliminar el producto')
     }
-    fetchProductos()
   }
 
   return (
@@ -106,8 +107,8 @@ export default function Productos() {
               onChange={(e) => setUnidad(e.target.value)}
               className="w-full border rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-amber-400"
             >
-              <option value="Kg">Kg</option>
-              <option value="Unidad">Unidad</option>
+              <option value="kg">Kg</option>
+              <option value="unidad">Unidad</option>
             </select>
           </div>
 
@@ -139,7 +140,7 @@ export default function Productos() {
             <p className="text-center text-gray-500">No hay productos cargados.</p>
           ) : (
             productos.map(producto => (
-              <div key={producto.id} className="bg-white rounded-xl shadow-sm p-4 border border-amber-100 flex justify-between items-center">
+              <div key={producto._id} className="bg-white rounded-xl shadow-sm p-4 border border-amber-100 flex justify-between items-center">
                 <div>
                   <p className="font-semibold text-gray-800">{producto.nombre}</p>
                   <p className="text-sm text-gray-400">{producto.unidad}</p>
@@ -152,7 +153,7 @@ export default function Productos() {
                     ✏️ Editar
                   </button>
                   <button
-                    onClick={() => handleEliminar(producto.id)}
+                    onClick={() => handleEliminar(producto._id)}
                     className="text-sm text-red-400 hover:underline"
                   >
                     🗑️ Eliminar
