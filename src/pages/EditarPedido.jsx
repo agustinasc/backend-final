@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { supabase } from '../supabase'
+import api from '../api'
 
 export default function EditarPedido() {
   const [clientes, setClientes] = useState([])
@@ -8,42 +8,42 @@ export default function EditarPedido() {
   const [clienteId, setClienteId] = useState('')
   const [fechaEntrega, setFechaEntrega] = useState('')
   const [observaciones, setObservaciones] = useState('')
-  const [detalle, setDetalle] = useState([{ producto_id: '', cantidad: '' }])
+  const [detalle, setDetalle] = useState([{ producto_id: '', cantidad: '', unidad: 'kg' }])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
   const { id } = useParams()
 
   const fetchData = async () => {
-    const { data: clientesData } = await supabase.from('clientes').select('*').order('nombre')
-    const { data: productosData } = await supabase.from('productos').select('*').order('nombre')
-    setClientes(clientesData || [])
-    setProductos(productosData || [])
+    try {
+      const { data: clientesData } = await api.get('/clientes')
+      const { data: productosData } = await api.get('/productos')
+      setClientes(clientesData || [])
+      setProductos(productosData || [])
+    } catch {
+      setClientes([])
+      setProductos([])
+    }
   }
 
   const fetchPedido = async () => {
-    const { data, error } = await supabase
-      .from('pedidos')
-      .select(`
-        *,
-        detalle_pedidos (
-          id,
-          cantidad,
-          producto_id,
-          productos (nombre, unidad)
+    try {
+      const { data } = await api.get(`/pedidos/${id}`)
+      if (data) {
+        // cliente puede venir poblado (objeto) o como id; tomamos el _id
+        setClienteId(data.cliente?._id || data.cliente || '')
+        setFechaEntrega(data.fechaEntrega ? data.fechaEntrega.substring(0, 10) : '')
+        setObservaciones(data.observaciones || '')
+        setDetalle(
+          (data.items || []).map(item => ({
+            producto_id: item.producto?._id || item.producto || '',
+            cantidad: item.cantidad,
+            unidad: item.unidad || 'kg'
+          }))
         )
-      `)
-      .eq('id', id)
-      .single()
-
-    if (!error && data) {
-      setClienteId(data.cliente_id)
-      setFechaEntrega(data.fecha_entrega)
-      setObservaciones(data.observaciones || '')
-      setDetalle(data.detalle_pedidos.map(d => ({
-        producto_id: d.producto_id,
-        cantidad: d.cantidad
-      })))
+      }
+    } catch {
+      setError('No se pudo cargar el pedido')
     }
   }
 
@@ -53,7 +53,7 @@ export default function EditarPedido() {
   }, [])
 
   const agregarLinea = () => {
-    setDetalle([...detalle, { producto_id: '', cantidad: '' }])
+    setDetalle([...detalle, { producto_id: '', cantidad: '', unidad: 'kg' }])
   }
 
   const eliminarLinea = (index) => {
@@ -75,34 +75,24 @@ export default function EditarPedido() {
 
     setLoading(true)
 
-    const { error: errorPedido } = await supabase
-      .from('pedidos')
-      .update({ cliente_id: clienteId, fecha_entrega: fechaEntrega, observaciones })
-      .eq('id', id)
+    const pedidoActualizado = {
+      cliente: clienteId,
+      fechaEntrega,
+      observaciones,
+      items: detalle.map(d => ({
+        producto: d.producto_id,
+        unidad: d.unidad,
+        cantidad: parseFloat(d.cantidad)
+      }))
+    }
 
-    if (errorPedido) {
+    try {
+      await api.put(`/pedidos/${id}`, pedidoActualizado)
+      navigate('/pedidos')
+    } catch {
       setError('Error al actualizar el pedido')
       setLoading(false)
-      return
     }
-
-    await supabase.from('detalle_pedidos').delete().eq('pedido_id', id)
-
-    const detalleInsert = detalle.map(d => ({
-      pedido_id: id,
-      producto_id: d.producto_id,
-      cantidad: parseFloat(d.cantidad)
-    }))
-
-    const { error: errorDetalle } = await supabase.from('detalle_pedidos').insert(detalleInsert)
-
-    if (errorDetalle) {
-      setError('Error al actualizar el detalle')
-      setLoading(false)
-      return
-    }
-
-    navigate('/pedidos')
   }
 
   return (
@@ -129,7 +119,7 @@ export default function EditarPedido() {
             >
               <option value="">Seleccioná un cliente...</option>
               {clientes.map(c => (
-                <option key={c.id} value={c.id}>{c.nombre}</option>
+                <option key={c._id} value={c._id}>{c.nombre}</option>
               ))}
             </select>
           </div>
@@ -167,7 +157,7 @@ export default function EditarPedido() {
                   >
                     <option value="">Seleccioná producto...</option>
                     {productos.map(p => (
-                      <option key={p.id} value={p.id}>{p.nombre} ({p.unidad})</option>
+                      <option key={p._id} value={p._id}>{p.nombre} ({p.unidad})</option>
                     ))}
                   </select>
                   <div className="flex gap-2">
@@ -180,14 +170,13 @@ export default function EditarPedido() {
                       min="1"
                     />
                     <select
-                      value={linea.unidad || ''}
+                      value={linea.unidad}
                       onChange={(e) => actualizarLinea(index, 'unidad', e.target.value)}
                       className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
                     >
-                      <option value="">Unidad</option>
-                      <option value="Kg">Kg</option>
-                      <option value="Unidad">Unidad</option>
-                      <option value="Lata">Lata</option>
+                      <option value="kg">Kg</option>
+                      <option value="unidad">Unidad</option>
+                      <option value="lata">Lata</option>
                     </select>
                   </div>
                   {detalle.length > 1 && (
