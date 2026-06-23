@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../supabase'
+import api from '../api'
 
 export default function NuevoPedido() {
   const [clientes, setClientes] = useState([])
@@ -8,23 +8,29 @@ export default function NuevoPedido() {
   const [clienteId, setClienteId] = useState('')
   const [fechaEntrega, setFechaEntrega] = useState('')
   const [observaciones, setObservaciones] = useState('')
-  const [detalle, setDetalle] = useState([{ producto_id: '', cantidad: '' }])
+  const [detalle, setDetalle] = useState([{ producto_id: '', cantidad: '', unidad: 'kg' }])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
-    const fetchData = async () => {
-        const { data: clientesData } = await supabase.from('clientes').select('*').order('nombre')
-        const { data: productosData } = await supabase.from('productos').select('*').order('nombre')
-        setClientes(clientesData || [])
-        setProductos(productosData || [])
+  const fetchData = async () => {
+    try {
+      const { data: clientesData } = await api.get('/clientes')
+      const { data: productosData } = await api.get('/productos')
+      setClientes(clientesData || [])
+      setProductos(productosData || [])
+    } catch {
+      setClientes([])
+      setProductos([])
     }
+  }
 
-    useEffect(() => {
-        fetchData()
-    }, [])
+  useEffect(() => {
+    fetchData()
+  }, [])
+
   const agregarLinea = () => {
-    setDetalle([...detalle, { producto_id: '', cantidad: '' }])
+    setDetalle([...detalle, { producto_id: '', cantidad: '', unidad: 'kg' }])
   }
 
   const eliminarLinea = (index) => {
@@ -46,41 +52,25 @@ export default function NuevoPedido() {
 
     setLoading(true)
 
-    const { data: { user } } = await supabase.auth.getUser()
+    // Armamos el pedido con los items adentro (Mongo los embebe)
+    const nuevoPedido = {
+      cliente: clienteId,
+      fechaEntrega,
+      observaciones,
+      items: detalle.map(d => ({
+        producto: d.producto_id,
+        unidad: d.unidad,
+        cantidad: parseFloat(d.cantidad)
+      }))
+    }
 
-    const { data: perfil } = await supabase
-      .from('perfiles')
-      .select('nombre')
-      .eq('id', user.id)
-      .single()
-
-    const { data: pedido, error: errorPedido } = await supabase
-      .from('pedidos')
-      .insert({ cliente_id: clienteId, fecha_entrega: fechaEntrega, observaciones, cargado_por: perfil?.nombre || user?.email })
-      .select()
-      .single()
-
-    if (errorPedido) {
+    try {
+      await api.post('/pedidos', nuevoPedido)
+      navigate('/pedidos')
+    } catch {
       setError('Error al guardar el pedido')
       setLoading(false)
-      return
     }
-
-    const detalleInsert = detalle.map(d => ({
-      pedido_id: pedido.id,
-      producto_id: d.producto_id,
-      cantidad: parseFloat(d.cantidad)
-    }))
-
-    const { error: errorDetalle } = await supabase.from('detalle_pedidos').insert(detalleInsert)
-
-    if (errorDetalle) {
-      setError('Error al guardar el detalle del pedido')
-      setLoading(false)
-      return
-    }
-
-    navigate('/pedidos')
   }
 
   return (
@@ -109,7 +99,7 @@ export default function NuevoPedido() {
             >
               <option value="">Seleccioná un cliente...</option>
               {clientes.map(c => (
-                <option key={c.id} value={c.id}>{c.nombre}</option>
+                <option key={c._id} value={c._id}>{c.nombre}</option>
               ))}
             </select>
           </div>
@@ -153,7 +143,7 @@ export default function NuevoPedido() {
                     >
                       <option value="">Seleccioná producto...</option>
                       {productos.map(p => (
-                        <option key={p.id} value={p.id}>{p.nombre} — {p.unidad}</option>
+                        <option key={p._id} value={p._id}>{p.nombre} — {p.unidad}</option>
                       ))}
                     </select>
                     {detalle.length > 1 && (
@@ -175,14 +165,13 @@ export default function NuevoPedido() {
                       min="1"
                     />
                     <select
-                      value={linea.unidad || ''}
+                      value={linea.unidad}
                       onChange={(e) => actualizarLinea(index, 'unidad', e.target.value)}
                       className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
                     >
-                      {/* <option value="">Unidad</option> */}
-                      <option value="Kg">Kg</option>
-                      <option value="Unidad">Unidad</option>
-                      <option value="Lata">Lata</option>
+                      <option value="kg">Kg</option>
+                      <option value="unidad">Unidad</option>
+                      <option value="lata">Lata</option>
                     </select>
                   </div>
                 </div>

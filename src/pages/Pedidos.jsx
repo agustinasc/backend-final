@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useContext } from 'react'
 import { UserContext } from '../App'
-import { supabase } from '../supabase'
+import api from '../api'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -17,19 +17,12 @@ export default function Pedidos() {
 
   const fetchPedidos = async () => {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('pedidos')
-      .select(`
-        *,
-        clientes (nombre),
-        detalle_pedidos (
-          cantidad,
-          productos (nombre, unidad)
-        )
-      `)
-      .order('fecha_entrega', { ascending: true })
-
-    if (!error) setPedidos(data)
+    try {
+      const { data } = await api.get('/pedidos')
+      setPedidos(data || [])
+    } catch {
+      setPedidos([])
+    }
     setLoading(false)
   }
 
@@ -37,19 +30,23 @@ export default function Pedidos() {
     fetchPedidos()
   }, [])
 
- const handleLogout = async () => {
-    await supabase.auth.signOut()
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('usuario')
     navigate('/')
   }
 
+  // La fecha viene como ISO completa (2026-06-25T00:00:00.000Z); tomamos solo la parte AAAA-MM-DD
+  const soloFecha = (f) => (f ? f.substring(0, 10) : '')
+
   const pedidosFiltrados = fechaSeleccionada
-    ? pedidos.filter(p => p.fecha_entrega === fechaSeleccionada)
+    ? pedidos.filter(p => soloFecha(p.fechaEntrega) === fechaSeleccionada)
     : pedidos
 
   const agruparPorFecha = () => {
     const grupos = {}
     pedidosFiltrados.forEach(pedido => {
-      const fecha = pedido.fecha_entrega
+      const fecha = soloFecha(pedido.fechaEntrega)
       if (!grupos[fecha]) grupos[fecha] = []
       grupos[fecha].push(pedido)
     })
@@ -63,13 +60,12 @@ export default function Pedidos() {
   const handleEliminar = async (pedidoId) => {
     const confirmar = window.confirm('¿Seguro que querés eliminar este pedido?')
     if (!confirmar) return
-
-    const { error } = await supabase
-      .from('pedidos')
-      .delete()
-      .eq('id', pedidoId)
-
-    if (!error) fetchPedidos()
+    try {
+      await api.delete(`/pedidos/${pedidoId}`)
+      fetchPedidos()
+    } catch {
+      alert('No se pudo eliminar el pedido (¿sos admin?)')
+    }
   }
 
   return (
@@ -148,23 +144,23 @@ export default function Pedidos() {
 
               <div className="flex flex-col gap-3">
                 {pedidosDia.map(pedido => (
-                  <div key={pedido.id} className="bg-white rounded-xl shadow-sm p-4 border border-amber-100">
+                  <div key={pedido._id} className="bg-white rounded-xl shadow-sm p-4 border border-amber-100">
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="font-semibold text-gray-800">{pedido.clientes?.nombre}</p>
+                        <p className="font-semibold text-gray-800">{pedido.cliente?.nombre}</p>
                         {pedido.observaciones && (
                           <p className="text-sm text-gray-400 mt-0.5">📝 {pedido.observaciones}</p>
                         )}
                       </div>
                       <div className="flex gap-2">
                         <button
-                          onClick={() => navigate(`/editar-pedido/${pedido.id}`)}
+                          onClick={() => navigate(`/editar-pedido/${pedido._id}`)}
                           className="text-sm text-amber-600 hover:underline"
                         >
                           ✏️ Editar
                         </button>
                         <button
-                          onClick={() => handleEliminar(pedido.id)}
+                          onClick={() => handleEliminar(pedido._id)}
                           className="text-sm text-red-400 hover:underline"
                         >
                           🗑️ Eliminar
@@ -172,9 +168,9 @@ export default function Pedidos() {
                       </div>
                     </div>
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {pedido.detalle_pedidos.map((detalle, i) => (
+                      {pedido.items?.map((item, i) => (
                         <span key={i} className="bg-amber-100 text-amber-800 text-sm px-3 py-1 rounded-full">
-                          {detalle.productos?.nombre}: <strong>{detalle.cantidad}</strong> {detalle.productos?.unidad}
+                          {item.producto?.nombre}: <strong>{item.cantidad}</strong> {item.unidad}
                         </span>
                       ))}
                     </div>
