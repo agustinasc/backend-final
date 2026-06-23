@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../supabase'
-
-const FUNCTION_URL = 'https://qscmkejcdsgvbjbljmgx.supabase.co/functions/v1/gestionar-usuarios'
+import api from '../api'
 
 export default function Usuarios() {
   const [usuarios, setUsuarios] = useState([])
@@ -16,21 +14,14 @@ export default function Usuarios() {
   const [nuevaPassword, setNuevaPassword] = useState('')
   const navigate = useNavigate()
 
-  const getToken = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    return session?.access_token
-  }
-
   const fetchUsuarios = async () => {
     setLoading(true)
-    const token = await getToken()
-    const res = await fetch(FUNCTION_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ accion: 'listar' })
-    })
-    const { data } = await res.json()
-    setUsuarios(data || [])
+    try {
+      const { data } = await api.get('/usuarios')
+      setUsuarios(data || [])
+    } catch {
+      setUsuarios([])
+    }
     setLoading(false)
   }
 
@@ -46,42 +37,29 @@ export default function Usuarios() {
     if (password.length < 6) return setError('La contraseña debe tener al menos 6 caracteres')
 
     setGuardando(true)
-    const token = await getToken()
-    const res = await fetch(FUNCTION_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ accion: 'crear', nombre, username, password })
-    })
-    const data = await res.json()
-
-    if (data.error) {
-      setError(data.error)
-    } else {
+    try {
+      await api.post('/usuarios', { nombre, username, password, rol: 'vendedor' })
       setNombre('')
       setUsername('')
       setPassword('')
       fetchUsuarios()
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error al crear el usuario')
     }
     setGuardando(false)
   }
 
   const handleCambiarPassword = async (userId) => {
+    setError('')
     if (!nuevaPassword.trim()) return
     if (nuevaPassword.length < 6) return setError('La contraseña debe tener al menos 6 caracteres')
 
-    const token = await getToken()
-    const res = await fetch(FUNCTION_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ accion: 'cambiar-password', userId, nuevaPassword })
-    })
-    const data = await res.json()
-
-    if (!data.error) {
+    try {
+      await api.put(`/usuarios/${userId}`, { password: nuevaPassword })
       setCambiandoPassword(null)
       setNuevaPassword('')
-    } else {
-      setError(data.error)
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error al cambiar la contraseña')
     }
   }
 
@@ -89,14 +67,12 @@ export default function Usuarios() {
     const confirmar = window.confirm(`¿Seguro que querés eliminar a ${nombreUsuario}?`)
     if (!confirmar) return
 
-    const token = await getToken()
-    const res = await fetch(FUNCTION_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ accion: 'eliminar', userId })
-    })
-    const data = await res.json()
-    if (!data.error) fetchUsuarios()
+    try {
+      await api.delete(`/usuarios/${userId}`)
+      fetchUsuarios()
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error al eliminar el usuario')
+    }
   }
 
   return (
@@ -170,7 +146,7 @@ export default function Usuarios() {
             <p className="text-center text-gray-500">No hay usuarios.</p>
           ) : (
             usuarios.map(u => (
-              <div key={u.id} className="bg-white rounded-xl shadow-sm p-4 border border-amber-100">
+              <div key={u._id} className="bg-white rounded-xl shadow-sm p-4 border border-amber-100">
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="font-semibold text-gray-800">{u.nombre}</p>
@@ -179,13 +155,13 @@ export default function Usuarios() {
                   {u.rol !== 'admin' && (
                     <div className="flex gap-3">
                       <button
-                        onClick={() => { setCambiandoPassword(u.id); setNuevaPassword(''); setError('') }}
+                        onClick={() => { setCambiandoPassword(u._id); setNuevaPassword(''); setError('') }}
                         className="text-sm text-amber-600 hover:underline"
                       >
                         🔑 Contraseña
                       </button>
                       <button
-                        onClick={() => handleEliminar(u.id, u.nombre)}
+                        onClick={() => handleEliminar(u._id, u.nombre)}
                         className="text-sm text-red-400 hover:underline"
                       >
                         🗑️ Eliminar
@@ -194,7 +170,7 @@ export default function Usuarios() {
                   )}
                 </div>
 
-                {cambiandoPassword === u.id && (
+                {cambiandoPassword === u._id && (
                   <div className="mt-3 flex gap-2">
                     <input
                       type="password"
@@ -204,7 +180,7 @@ export default function Usuarios() {
                       className="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
                     />
                     <button
-                      onClick={() => handleCambiarPassword(u.id)}
+                      onClick={() => handleCambiarPassword(u._id)}
                       className="bg-amber-600 hover:bg-amber-700 text-white text-sm px-4 py-2 rounded-lg transition"
                     >
                       Guardar
