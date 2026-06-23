@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { supabase } from '../supabase'
+import api from '../api'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import jsPDF from 'jspdf'
@@ -12,21 +12,19 @@ export default function OrdenProduccion() {
   const fecha = searchParams.get('fecha')
   const navigate = useNavigate()
 
+  // Recorta la fecha ISO a AAAA-MM-DD
+  const soloFecha = (f) => (f ? f.substring(0, 10) : '')
+
   const fetchPedidos = async () => {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('pedidos')
-      .select(`
-        *,
-        clientes (nombre),
-        detalle_pedidos (
-          cantidad,
-          productos (nombre, unidad)
-        )
-      `)
-      .eq('fecha_entrega', fecha)
-
-    if (!error) setPedidos(data)
+    try {
+      const { data } = await api.get('/pedidos')
+      // Filtramos por la fecha de entrega seleccionada
+      const delDia = (data || []).filter(p => soloFecha(p.fechaEntrega) === fecha)
+      setPedidos(delDia)
+    } catch {
+      setPedidos([])
+    }
     setLoading(false)
   }
 
@@ -34,18 +32,19 @@ export default function OrdenProduccion() {
     if (fecha) fetchPedidos()
   }, [fecha])
 
-  // Consolidar productos del día
+  // Consolidar productos del día, agrupando por producto + unidad
   const consolidar = () => {
     const mapa = {}
     pedidos.forEach(pedido => {
-      pedido.detalle_pedidos.forEach(detalle => {
-        const nombre = detalle.productos?.nombre
-        const unidad = detalle.productos?.unidad
-        if (!mapa[nombre]) mapa[nombre] = { cantidad: 0, unidad }
-        mapa[nombre].cantidad += parseFloat(detalle.cantidad)
+      (pedido.items || []).forEach(item => {
+        const nombre = item.producto?.nombre || 'Producto'
+        const unidad = item.unidad || ''
+        const clave = `${nombre} (${unidad})`
+        if (!mapa[clave]) mapa[clave] = { nombre, unidad, cantidad: 0 }
+        mapa[clave].cantidad += parseFloat(item.cantidad)
       })
     })
-    return Object.entries(mapa).map(([nombre, data]) => ({ nombre, ...data }))
+    return Object.values(mapa)
   }
 
   const consolidado = consolidar()
@@ -98,11 +97,11 @@ export default function OrdenProduccion() {
       doc.setFontSize(12)
       doc.setTextColor(0, 0, 0)
       doc.setFont(undefined, 'bold')
-      doc.text(pedido.clientes?.nombre, 20, y)
+      doc.text(pedido.cliente?.nombre || 'Cliente', 20, y)
       doc.setFont(undefined, 'normal')
       y += 7
-      pedido.detalle_pedidos.forEach(detalle => {
-        doc.text(`  - ${detalle.productos?.nombre}: ${detalle.cantidad} ${detalle.productos?.unidad}`, 20, y)
+      ;(pedido.items || []).forEach(item => {
+        doc.text(`  - ${item.producto?.nombre}: ${item.cantidad} ${item.unidad}`, 20, y)
         y += 7
       })
       if (pedido.observaciones) {
@@ -167,11 +166,11 @@ export default function OrdenProduccion() {
                 <h3 className="font-semibold text-gray-700 mb-2 border-b pb-1">Detalle por Cliente</h3>
                 <div className="flex flex-col gap-3">
                   {pedidos.map(pedido => (
-                    <div key={pedido.id} className="border border-gray-100 rounded-lg p-3">
-                      <p className="font-semibold text-gray-800 mb-1">{pedido.clientes?.nombre}</p>
-                      {pedido.detalle_pedidos.map((detalle, i) => (
+                    <div key={pedido._id} className="border border-gray-100 rounded-lg p-3">
+                      <p className="font-semibold text-gray-800 mb-1">{pedido.cliente?.nombre}</p>
+                      {(pedido.items || []).map((item, i) => (
                         <p key={i} className="text-sm text-gray-600">
-                          — {detalle.productos?.nombre}: <strong>{detalle.cantidad}</strong> {detalle.productos?.unidad}
+                          — {item.producto?.nombre}: <strong>{item.cantidad}</strong> {item.unidad}
                         </p>
                       ))}
                       {pedido.observaciones && (
