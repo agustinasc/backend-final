@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../supabase'
+import api from '../api'
 
 export default function Clientes() {
   const [clientes, setClientes] = useState([])
@@ -13,8 +13,12 @@ export default function Clientes() {
 
   const fetchClientes = async () => {
     setLoading(true)
-    const { data } = await supabase.from('clientes').select('*').order('nombre')
-    setClientes(data || [])
+    try {
+      const { data } = await api.get('/clientes')
+      setClientes(data || [])
+    } catch {
+      setClientes([])
+    }
     setLoading(false)
   }
 
@@ -26,17 +30,20 @@ export default function Clientes() {
     setError('')
     if (!nombre.trim()) return setError('El nombre es obligatorio')
 
-    if (editandoId) {
-      const { error } = await supabase
-        .from('clientes')
-        .update({ nombre: nombre.trim(), telefono: telefono.trim() })
-        .eq('id', editandoId)
-      if (error) return setError('Error al actualizar el cliente')
-    } else {
-      const { error } = await supabase
-        .from('clientes')
-        .insert({ nombre: nombre.trim(), telefono: telefono.trim() })
-      if (error) return setError('Error al agregar el cliente')
+    try {
+      if (editandoId) {
+        await api.put(`/clientes/${editandoId}`, {
+          nombre: nombre.trim(),
+          telefono: telefono.trim()
+        })
+      } else {
+        await api.post('/clientes', {
+          nombre: nombre.trim(),
+          telefono: telefono.trim()
+        })
+      }
+    } catch {
+      return setError(editandoId ? 'Error al actualizar el cliente' : 'Error al agregar el cliente')
     }
 
     setNombre('')
@@ -46,7 +53,7 @@ export default function Clientes() {
   }
 
   const handleEditar = (cliente) => {
-    setEditandoId(cliente.id)
+    setEditandoId(cliente._id)
     setNombre(cliente.nombre)
     setTelefono(cliente.telefono || '')
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -62,8 +69,12 @@ export default function Clientes() {
   const handleEliminar = async (id) => {
     const confirmar = window.confirm('¿Seguro que querés eliminar este cliente?')
     if (!confirmar) return
-    const { error } = await supabase.from('clientes').delete().eq('id', id)
-    if (!error) fetchClientes()
+    try {
+      await api.delete(`/clientes/${id}`)
+      fetchClientes()
+    } catch {
+      setError('Error al eliminar el cliente')
+    }
   }
 
   return (
@@ -134,7 +145,7 @@ export default function Clientes() {
             <p className="text-center text-gray-500">No hay clientes cargados.</p>
           ) : (
             clientes.map(cliente => (
-              <div key={cliente.id} className="bg-white rounded-xl shadow-sm p-4 border border-amber-100 flex justify-between items-center">
+              <div key={cliente._id} className="bg-white rounded-xl shadow-sm p-4 border border-amber-100 flex justify-between items-center">
                 <div>
                   <p className="font-semibold text-gray-800">{cliente.nombre}</p>
                   {cliente.telefono && <p className="text-sm text-gray-400">{cliente.telefono}</p>}
@@ -147,7 +158,7 @@ export default function Clientes() {
                     ✏️ Editar
                   </button>
                   <button
-                    onClick={() => handleEliminar(cliente.id)}
+                    onClick={() => handleEliminar(cliente._id)}
                     className="text-sm text-red-400 hover:underline"
                   >
                     🗑️ Eliminar

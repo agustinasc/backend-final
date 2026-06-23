@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../supabase'
-
-const FUNCTION_URL = 'https://qscmkejcdsgvbjbljmgx.supabase.co/functions/v1/gestionar-usuarios'
+import api from '../api'
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -17,32 +15,15 @@ export default function Login() {
     setLoading(true)
 
     try {
-      const res = await fetch(FUNCTION_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accion: 'login', username })
-      })
+      const { data } = await api.post('/auth/login', { username, password })
 
-      const data = await res.json()
+      // Guardamos token y datos del usuario en el navegador
+      localStorage.setItem('token', data.token)
+      localStorage.setItem('usuario', JSON.stringify(data.usuario))
 
-      if (data.error || !data.email) {
-        setError('Usuario o contraseña incorrectos')
-        setLoading(false)
-        return
-      }
-
-      const { error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password
-      })
-
-      if (error) {
-        setError('Usuario o contraseña incorrectos')
-      } else {
-        navigate('/pedidos')
-      }
-    } catch {
-      setError('Error al conectar con el servidor')
+      navigate('/pedidos')
+    } catch (err) {
+      setError('Usuario o contraseña incorrectos')
     }
 
     setLoading(false)
