@@ -1,0 +1,528 @@
+{
+  "info": {
+    "_postman_id": "c9fcc4c8-3c2d-4282-aa49-9dd27b32881b",
+    "name": "API Panaderia",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "15603543",
+    "_collection_link": "https://go.postman.co/collection/15603543-c9fcc4c8-3c2d-4282-aa49-9dd27b32881b?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "LOGIN",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const data = pm.response.json();\r",
+              "if (data.token) {\r",
+              "  pm.collectionVariables.set(\"token\", data.token);\r",
+              "  console.log(\"Token guardado automáticamente\");\r",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"username\": \"admin\",\r\n  \"password\": \"cambiar123\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "USUARIOS",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/usuarios",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "usuarios"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "USUARIOS",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"nombre\": \"Vendedor de prueba\",\r\n  \"username\": \"vendedor1\",\r\n  \"password\": \"vende123\",\r\n  \"rol\": \"vendedor\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/usuarios",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "usuarios"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "CLIENTE",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \r\n    \"nombre\": \"Prueba2\", \r\n    \"telefono\": \"383-1234567\", \r\n    \"direccion\": \"Republica 123\" \r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/clientes",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "clientes"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "CLIENTE",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/clientes/6a39d72751276bd8d89dd1b2",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "clientes",
+            "6a39d72751276bd8d89dd1b2"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "CLIENTE",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/clientes",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "clientes"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "CLIENTE ID",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "    {\r\n        \"nombre\": \"Panadería La Esquina\",\r\n        \"telefono\": \"383-89123456\",\r\n        \"direccion\": \"San Martín 125\"\r\n    }   ",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/clientes/6a35c139b4c2b1062df28daa",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "clientes",
+            "6a35c139b4c2b1062df28daa"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "PEDIDOS",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"cliente\": \"6a35c139b4c2b1062df28daa\",\r\n  \"fechaEntrega\": \"2026-06-25\",\r\n  \"observaciones\": \"Entregar a la mañana\",\r\n  \"items\": [\r\n    { \"producto\": \"6a35c5e6c65693fddcb943e7\", \"unidad\": \"kg\", \"cantidad\": 2 }\r\n  ]\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/pedidos",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "PEDIDOS",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"cliente\": \"6a35c139b4c2b1062df28daa\",\r\n  \"fechaEntrega\": \"2026-07-09\",\r\n  \"observaciones\": \"Prueba2\",\r\n  \"items\": [\r\n    { \"producto\": \"6a35c5e6c65693fddcb943e7\", \"unidad\": \"kg\", \"cantidad\": 2 },\r\n    { \"producto\": \"6a39d80b51276bd8d89dd1c6\", \"unidad\": \"lata\", \"cantidad\": 1 }\r\n  ]\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/pedidos",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "PEDIDOS",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"cliente\": \"6a35c139b4c2b1062df28daa\",\r\n  \"fechaEntrega\": \"2026-07-09\",\r\n  \"observaciones\": \"Prueba\",\r\n  \"items\": [\r\n    { \"producto\": \"6a35c5e6c65693fddcb943e7\", \"unidad\": \"kg\", \"cantidad\": 2 },\r\n    { \"producto\": \"6a39d80b51276bd8d89dd1c6\", \"unidad\": \"lata\", \"cantidad\": 1 }\r\n  ]\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/pedidos/:id",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            ":id"
+          ],
+          "variable": [
+            {
+              "key": "id",
+              "value": "6a39dae151276bd8d89dd1f9"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "PEDIDOS",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"cliente\": \"6a35c139b4c2b1062df28daa\",\r\n  \"fechaEntrega\": \"2026-06-25\",\r\n  \"observaciones\": \"Entregar a la mañana\",\r\n  \"items\": [\r\n    { \"producto\": \"6a35c5e6c65693fddcb943e7\", \"unidad\": \"kg\", \"cantidad\": 2 }\r\n  ]\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/pedidos/:id",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            ":id"
+          ],
+          "variable": [
+            {
+              "key": "id",
+              "value": "6a39da2c51276bd8d89dd1f4"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "PRODUCTO",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/productos",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "productos"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "PRODUCTO",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"nombre\": \"Prueba\",\r\n  \"unidadesDisponibles\": [\r\n    { \"unidad\": \"lata\", \"precio\": 0 },\r\n    { \"unidad\": \"kg\", \"precio\": 0 },\r\n    { \"unidad\": \"unidad\", \"precio\": 0 }\r\n  ]\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/productos",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "productos"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "PRODUCTO",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"nombre\": \"Facturas de grasa\",\r\n  \"unidadesDisponibles\": [\r\n    { \"unidad\": \"lata\", \"precio\": 0 },\r\n    { \"unidad\": \"kg\", \"precio\": 0 },\r\n    { \"unidad\": \"unidad\", \"precio\": 0 }\r\n  ]\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/productos/6a39d80b51276bd8d89dd1c6",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "productos",
+            "6a39d80b51276bd8d89dd1c6"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "PRODUCTO",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"nombre\": \"Prueba\",\r\n  \"unidadesDisponibles\": [\r\n    { \"unidad\": \"lata\", \"precio\": 0 },\r\n    { \"unidad\": \"kg\", \"precio\": 0 },\r\n    { \"unidad\": \"unidad\", \"precio\": 0 }\r\n  ]\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/productos/:id",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "productos",
+            ":id"
+          ],
+          "variable": [
+            {
+              "key": "id",
+              "value": "6a39d7ea51276bd8d89dd1b9"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          "const data = pm.response.json();\r",
+          "if (data.token) {\r",
+          "  pm.collectionVariables.set(\"token\", data.token);\r",
+          "  console.log(\"Token guardado automáticamente\");\r",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": ""
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ]
+}
