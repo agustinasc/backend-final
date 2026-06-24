@@ -2,9 +2,8 @@ import axios from 'axios'
 
 // La dirección del backend
 const api = axios.create({
-  baseURL: 'http://localhost:4000/api'
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api'
 })
-
 // Antes de cada request, si hay token guardado, lo agrega al header
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
