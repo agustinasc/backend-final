@@ -1,6 +1,6 @@
 # 🥖 API Panadería — Sistema de Pedidos
 
-API RESTful para la gestión de pedidos de una panadería, desarrollada como Trabajo Práctico Integrador Final de la carrera Back End con Node.js. Permite administrar clientes, productos, pedidos y usuarios, con autenticación, control de roles y generación de órdenes de producción.
+API RESTful para la gestión de pedidos de una panadería, desarrollada como Trabajo Práctico Integrador Final de la carrera Back End en ADA. Permite administrar clientes, productos, pedidos y usuarios, con autenticación, control de roles y generación de órdenes de producción.
 
 El proyecto incluye un **backend** (API REST con Node + Express + MongoDB) y un **frontend** (React + Vite) que consume la API.
 
@@ -200,6 +200,6 @@ La colección usa dos variables:
 ## 👩‍💻 Autora
 
 **AgustinaSC**
-Trabajo Práctico Integrador Final — Carrera Back End con Node.js
+Trabajo Práctico Integrador Final — Carrera Back End
 
 © 2026 AgustinaSC
